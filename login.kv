@@ -1,0 +1,61 @@
+<GerenciadorTelas>: # indica qual tela vai ser carregada primeiro
+    PrimeiraTela:
+        name: "login"
+    SegundaTela:
+        name: "Agendamento"
+
+<PrimeiraTela>:
+    id: "login"
+    canvas: 
+    # propriedade de estilização
+        Color:
+            rgba: 255, 234, 234, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    BoxLayout: # é um objeto q serve para agrupar e organizar outros objetos
+        orientation: "vertical" # faz os elementos ficarem um abaixo do outro
+        Image:
+            source: "assets/avatar.png"
+            size_hint: (1, 0.7)
+        Label: # objeto de rotulo serve para colocar texto
+            text: "Seja Bem Vindo!"
+            color: 0, 0, 0, 1
+            bold: True # deixa texto em negrito
+            font_size: 22 # tamanho da letra
+        MDTextField: # objeto que permite que o usuario escreva em uma caixinha
+            id: email
+            hint_text: "Email"
+            pos_hint: {'center_x': 0.5, 'center_y': 1} # posiciona o elemento em um lugar especifico
+            size_hint_x: 0.8
+            icon_right: "email" # icone de email
+
+        MDTextField:
+            id: senha
+            hint_text: "Senha"
+            pos_hint: {'center_x': 0.5, 'center_y': 1} # fixa em um lugar especifico da tela
+            size_hint_x: .8
+            icon_right: "lock"
+            password: True # oculta a senha
+            
+        BoxLayout: # outro objeto para agrupar os botões
+            spacing: 10 # da um espaçamento entro os botões
+            padding: 0, 200
+            Widget: # objeto invisivel para ajustar os botões na tela (é gambiarra)
+                size_hint_x: None
+                width: 200             
+            MDRaisedButton:
+                text: "Cadastrar"
+                size_hint_x: None
+                padding: 20
+                on_release: root.cadastrar()
+            Widget:
+                size_hint_x: None
+                width: 10  
+
+            MDRaisedButton:
+                text: "Entrar"
+                size_hint_x: None  # Desativa o tamanho automático
+                padding: 20  # Adiciona 20 pixels de padding nos lados
+                on_release: root.login()
+                

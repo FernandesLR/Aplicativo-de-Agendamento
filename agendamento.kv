@@ -1,0 +1,49 @@
+<GerenciadorTelas>:
+    SegundaTela:
+        name: "Agendamento"
+
+<SegundaTela>:
+    AnchorLayout:
+        anchor_x: 'center'
+        anchor_y: 'top'
+        orientation: "vertical"
+        BoxLayout:
+            orientation: "vertical"
+            canvas.before:
+                Color:
+                    rgba: 1, 0.3, 0.5, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            size_hint_y: None
+            height: 100
+            MDLabel:
+                text: "Agendamento"
+                padding: 30
+                color: 1, 1, 1, 1
+                bold: True
+                font_size: 18
+            BoxLayout:
+                canvas.before:
+                    Color:
+                        rgba: 1, 0.3, 0.5, 1  # Define a cor de fundo do BoxLayout
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+
+                Button:
+                    text: "Meus Eventos"
+                    bold: True
+                    background_normal: ''  # Remove a imagem de fundo padrão do botão
+                    background_color: 0, 0, 0, 0  # Define a cor de fundo transparente
+
+                Widget:
+                    size_hint_x: None
+                    width: 100  
+
+                Button:
+                    text: "Meu Calendário"
+                    bold: True
+                    background_normal: ''  # Remove a imagem de fundo padrão do botão
+                    background_color: 0, 0, 0, 0  # Define a cor de fundo transparente
+                    on_release: root.calendario()
