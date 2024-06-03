@@ -18,7 +18,7 @@ def conectar():
 
 # Verificar login e senha
 def verificarLogin(email, senha):
-    if email == '':
+    if email == '' or ('@gmail.com' not in email and '@hotmail.com' not in email):
         return False
     cnx = conectar() # inicializa a função conectar
     task = cnx.cursor() # Objeto cursor para poder executar comandos SQL
@@ -42,7 +42,7 @@ def verificarLogin(email, senha):
 #----------- Testes de login
 
 #verificarLogin('ana123@gmail.com', '23356') # Retorna verdadeiro
-#verificarLogin('ana123@gmail.com', 23356) # Retorna verdadeiro
+#print(verificarLogin('ana123@gmail.com', 23356)) # Retorna verdadeiro
 
 #verificarLogin('aaana123@gmail.com', 45646542) # Retorna falso
 
@@ -52,15 +52,22 @@ def verificarLogin(email, senha):
 
 
 def cadastrarUsuario(email, senha):
-    if verificarLogin(email, senha) == False: # se for igual a false é porque a conta não existe
+    if email == '' or ('@gmail.com' not in email and '@hotmail.com' not in email):
+        return False
+    
+    elif verificarLogin(email, senha) == False: # se for igual a false é porque a conta não existe
         cnx = conectar()
         task = cnx.cursor()
-        task.execute('INSERT INTO usuario(email, senha) VALUES(%s, %s)', (email, senha))
-        id = task.lastrowid
-        cnx.commit()
-        task.close()
-        cnx.close() # Finaliza o banco de dados
-        return id
+        try:
+            task.execute('INSERT INTO usuario(email, senha) VALUES(%s, %s)', (email, senha))
+        except ValueError as e:
+            print(e)
+        finally:
+            id = task.lastrowid
+            cnx.commit()
+            task.close()
+            cnx.close() # Finaliza o banco de dados
+            return id
         
     else: # isso impede que o usuário tente cadastrar várias vezes a mesma conta
         return False 
@@ -72,15 +79,20 @@ def cadastrarUsuario(email, senha):
 #cadastrarUsuario('FernandoPedro@Hotmail.com', 54451)
 
 def registrarData(data, evento='', fk=0):
-    fk = fk[1]
-    cnx = conectar()
-    task = cnx.cursor()
-    task.execute('INSERT INTO agenda(diaHora, evento, IdUsuario) VALUES(%s, %s, %s)', (data, evento, fk))
-    cnx.commit()
-    id = task.lastrowid
-    task.close()
-    cnx.close()
-    return id
+    try:
+        fk = fk[1]
+    except ValueError as e:
+        fk = fk[0]
+        print(e)
+    finally:
+        cnx = conectar()
+        task = cnx.cursor()
+        task.execute('INSERT INTO agenda(diaHora, evento, IdUsuario) VALUES(%s, %s, %s)', (data, evento, fk))
+        cnx.commit()
+        id = task.lastrowid
+        task.close()
+        cnx.close()
+        return id
 
 
 
@@ -94,18 +106,23 @@ def excluirData(idAgenda):
     cnx.close()
 
 def retornarData(idUsuario):
-    idUsuario = idUsuario[1]
-    cnx = conectar() 
-    task = cnx.cursor()
+    try:
+        idUsuario = idUsuario[1]
+    except ValueError as e:
+        idUsuario = [0]
+        print(e)
+    finally:
+        cnx = conectar() 
+        task = cnx.cursor()
 
-    task.execute("SELECT agendaID, diaHora, evento FROM agenda WHERE IdUsuario = %s", (idUsuario,))
-    
-    select = task.fetchall() # Retorna o resultado da consulta
+        task.execute("SELECT agendaID, diaHora, evento FROM agenda WHERE IdUsuario = %s", (idUsuario,))
+        
+        select = task.fetchall() # Retorna o resultado da consulta
 
-    if select:
-        return select
-    else:
-        return False
+        if select:
+            return select
+        else:
+            return False
 
 #idat = registrarData('2029/05/27 22:35:00', 'test2e', 1)
 
