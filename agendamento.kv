@@ -39,8 +39,7 @@
 
                 Widget:
                     size_hint_x: None
-                    width: 100  
-
+                    width: 100
                 Button:
                     text: "Meu Calendário"
                     bold: True
@@ -52,48 +51,10 @@
         orientation: 'vertical'
         size_hint: (1, None)
         height: 500
-    
-    AnchorLayout:
-        anchor_x: 'center'
-        opacity: 0
-        id: card
-        MDCard:
-            md_bg_color: 1, 1, 1, 1
-            size_hint_y: None
-            size_hint_x: None
-            height: 400
-            width: 400
-            radius: [30, 30, 30, 30]
-            elevation: 2  # Adiciona a sombra
-            AnchorLayout:
-                anchor_x: 'center'
-                BoxLayout:
-                    orientation: "vertical"
-                    padding: [100, 0, 0, 40]
-                    MDTextField:
-                        id: evento
-                        hint_text: "Meu Evento"
-                        multiline: True
-                        size_hint_x: None
-                        width: "200dp"
-                    Widget:
-                        size_hint_y: None
-                        height: 160
-                    MDRaisedButton:
-                        text: "Marcar"
-                        padding: 120, 0
-                        on_release: root.pegarEvento()
-        
-
-
-
     AnchorLayout:
         anchor_x: 'right'
         anchor_y: 'bottom'
-        
         MDRaisedButton:
             text: "Apagar"
             padding: 120, 0
             on_release: root.excluirDados()
-
-                            

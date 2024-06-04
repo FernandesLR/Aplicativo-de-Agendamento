@@ -1,12 +1,12 @@
 import mysql.connector # api para conectar no banco de dados
-import env
+
 def conectar(): 
     try:
-        coneccao = mysql.connector.connect(user= env.user, # usuario para acessar o banco de dados
-                                    password= env.password, # senha
-                                    port= env.port, # a porta
-                                    host= env.host, # dominio do banco de dados
-                                    database= env.database # nome do banco de dados
+        coneccao = mysql.connector.connect(user= '', # usuario para acessar o banco de dados
+                                    password= '', # senha
+                                    port= 27125, # a porta
+                                    host= '', # dominio do banco de dados
+                                    database= 'defaultdb' # nome do banco de dados
                                     )
         return coneccao # retorna a variavel que faz conecção caso esteja tud ok
     except mysql.connector.Error as err:
@@ -124,7 +124,7 @@ def retornarData(idUsuario):
         else:
             return False
 
-#idat = registrarData('2029/05/27 22:35:00', 'test2e', 1)
+#idat = registrarData('2024/06/03 19:39:00', 'test2e', 2)
 
 #print(idat)
 

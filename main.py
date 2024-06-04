@@ -1,28 +1,21 @@
 # importando dependências
 from kivymd.app import MDApp
-from kivy.uix.screenmanager import Screen, ScreenManager # importa o grenciador de telas
+from kivy.uix.screenmanager import Screen, ScreenManager # importa o gerenciador de telas
 from kivy.lang import Builder
 from kivymd.uix.pickers import MDDatePicker # interface de agenda
-from kivymd.uix.pickers import MDTimePicker
-from kivy.core.window import Window
-from kivy.uix.label import Label # apagar depois
+from kivymd.uix.pickers import MDTimePicker # interface de relógio
 from kivymd.uix.datatables import MDDataTable
 from kivy.metrics import dp
-from datetime import datetime
+from datetime import datetime # apagar caso não tenha marcardor
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.textfield import MDTextField
 import db # importa o banco de dados
 
+#from plyer import notification
 
-"""
-    Falta criar:
-    - Criar um trigger que mande notificação para o celular do usuario
-    - Criar um marcador para indicar quando um compromisso já passou
-    -- Se possivel: Refatorar para deixa-lo mais performatico
-    - excluir window.size
-    - passar para android
-"""
+#from jnius import autoclass
+
 
 def formatar_data(data):
     # Convertendo a string de data para um objeto datetime
@@ -33,7 +26,7 @@ def formatar_data(data):
 
     return data_formatada
 
-Window.size = (500, 900) # tamanho minimo de tela
+
 
 
 class GerenciadorTelas(ScreenManager):
@@ -56,14 +49,14 @@ class PrimeiraTela(Screen): # vai ser a tela de login
             return
         idUsuario = db.verificarLogin(email, senha)
         
+        self.manager.current = 'Agendamento'
 
         if idUsuario: # passa para uma função externa que vai tratar os dados
-            self.ids.email.line_color_normal = (0, 1, 0, 1) # verde
-            self.ids.senha.line_color_normal = (0, 1, 0, 1) # verde
-            self.manager.current = 'Agendamento'
+            self.ids.email.line_color_normal = [0, 1, 0, 1] # verde
+            self.ids.senha.line_color_normal = [0, 1, 0, 1] # verde
+            
             self.IdUsuario = idUsuario
             self.manager.get_screen('Agendamento').idUsuario = idUsuario
-            self.manager.current = 'Agendamento'
             
 
         else:
@@ -114,8 +107,15 @@ class SegundaTela(Screen):
         self.hora = ""
         self.evento = ""
         self.IdAgenda = ''
-        self.idUsuario = 1
+        self.idUsuario = ''
+        self.data_tables = None
         self.listaID = []
+
+    def on_enter(self, *args):
+        if self.data_tables:
+            self.remove_widget(self.data_tables)
+        primeira_tela = self.manager.get_screen('login')  # Substitua 'nome_da_primeira_tela' pelo nome da sua PrimeiraTela
+        self.idUsuario = primeira_tela.IdUsuario
         self.tabela()
 
     def calendario(self):
@@ -133,7 +133,7 @@ class SegundaTela(Screen):
         relogio.open()
 
     def pegarHora(self, instance, value):
-        self.hora = value
+        self.hora = value # self.hora recebe valor da hora
         instance.dismiss()  # Fechar o MDTimePicker
         self.pegarEvento()
 
@@ -151,14 +151,18 @@ class SegundaTela(Screen):
             ),
         ],
         )
-        self.aviso.open()
+        self.aviso.open() # adiciona na tela esse aviso
 
 
     def registrar(self):
-        if self.data and self.hora:
-            data = f"{self.data} "+ f"{self.hora}"
-            self.IdAgenda = db.registrarData(data, self.evento, self.idUsuario)
-            self.addDados(self.data, self.hora, self.evento)
+        if self.data and self.hora: # verifica se tem alguma coisa dentro dessas variáveis
+
+            data = f"{self.data} "+ f"{self.hora}" # concatena duas variáveis para guardar no banco
+
+            # self.IdAgenda recebe o id desse novo registro que é retornado dessa função db.registrarData
+            self.IdAgenda = db.registrarData(data, self.evento, self.idUsuario) 
+            
+            self.addDados(self.data, self.hora, self.evento) # adiciona esses dados cadastrados a interface
 
         else:
             print("Data ou hora não foram selecionadas.")
@@ -177,36 +181,36 @@ class SegundaTela(Screen):
                 ("Evento", dp(34)),
             ]
         )
-        self.data_tables.bind(on_check_press=self.pegarIDtable)
-        self.add_widget(self.data_tables)
-
-        self.retornarDados()
+        self.add_widget(self.data_tables) # adiciona esse componente na tela
+        self.data_tables.bind(on_check_press=self.pegarIDtable) # adiciona uma função que dispara toda vez quem uma linha é selecionada
+        self.retornarDados() # tenta retornar os dados do banco de dados caso essa pessoa tenha algum registro
 
 
     
     def pegarIDtable(self, instance, row):
-        if row[0] not in self.listaID:
-            self.listaID.append(row[0])
-        else:
-            self.listaID.remove(row[0])
+        self.id = row
         
         
     def addDados(self, valorData="Não informado", valorHora="Não informado", valorEvento="Não informado"):
+        self.diaHora = str(valorData) + ' ' + str(valorHora)
+        self.diaHora = self.diaHora[:-3]
         
         valorData = formatar_data(str(valorData))
-        
         self.data_tables.add_row([f"{self.IdAgenda}",f"{valorData}", f"{valorHora}", f"{valorEvento}"])
-        
-        
-    def excluirDados(self):
-        if self.listaID:
-            for id in self.listaID:
-                db.excluirData(id)
 
-            self.listaID.clear()
-            self.remove_widget(self.data_tables)
-            self.tabela()
+        # Lógica dos marcadores (destacar eventos concluídos)
+        
             
+
+    def excluirDados(self):
+        c = 0
+        if len(self.data_tables.row_data) > 1:
+            for dado in self.data_tables.row_data:
+                if dado == self.id:
+                    self.data_tables.remove_row(self.data_tables.row_data[c])
+                    db.excluirData(dado[0])
+                c += 1
+
         else:
             self.aviso = MDDialog(
             title="Aviso",
@@ -224,6 +228,7 @@ class SegundaTela(Screen):
         if self.aviso:
             self.aviso.dismiss()
             self.aviso = None
+
     def pegarTxt(self, *args):
         self.evento = self.aviso.content_cls.text
         self.aviso.dismiss()
@@ -238,10 +243,25 @@ class SegundaTela(Screen):
             for dado in dados:
                 self.IdAgenda = dado[0]
                 diahora = str(dado[1]).split(' ')
+                self.diaHora = diahora[0] +' ' + diahora[1]
+                self.diaHora = self.diaHora[-10]
+                
                 self.addDados(diahora[0], diahora[1], dado[2])
         else:
             print('essa pessoa não possui dados')
     
+    #def dispararNotificacao(self, titulo, msg):
+        #try:
+            #notification.notify(
+     #           title= titulo,
+      #          message= msg,
+        #        app_name= 'Agendamento'
+       #     )
+       # except ValueError as e:
+          #  print(e)
+        #finally:
+         #   pass
+
     def sair(self):
         self.stop()
 
@@ -252,9 +272,12 @@ class MeuApp(MDApp):
         self.theme_cls.primary_palette = "Pink"
         Builder.load_file('login.kv')
         Builder.load_file('agendamento.kv') # importa o arquivo de estilização
+
         return GerenciadorTelas() # retorna o objeto gerenciador de telas
     def sair(self):
         self.stop()
+
+    
     
 
 # Testes
