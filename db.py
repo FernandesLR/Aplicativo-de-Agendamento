@@ -1,21 +1,18 @@
 import mysql.connector # api para conectar no banco de dados
+import env
 
 def conectar(): 
     try:
-        coneccao = mysql.connector.connect(user= '', # usuario para acessar o banco de dados
-                                    password= '', # senha
-                                    port= 27125, # a porta
-                                    host= '', # dominio do banco de dados
-                                    database= 'defaultdb' # nome do banco de dados
+        coneccao = mysql.connector.connect(user= env.user, # usuario para acessar o banco de dados
+                                    password= env.password, # senha
+                                    port= env.port, # a porta
+                                    host= env.host, # dominio do banco de dados
+                                    database= env.database # nome do banco de dados
                                     )
         return coneccao # retorna a variavel que faz conecção caso esteja tud ok
     except mysql.connector.Error as err:
         print(err)
     
-
-
-
-
 # Verificar login e senha
 def verificarLogin(email, senha):
     if email == '' or ('@gmail.com' not in email and '@hotmail.com' not in email):
@@ -37,18 +34,6 @@ def verificarLogin(email, senha):
     else:
         print('email e senha não encontrado')
         return False
-
-    
-#----------- Testes de login
-
-#verificarLogin('ana123@gmail.com', '23356') # Retorna verdadeiro
-#print(verificarLogin('ana123@gmail.com', 23356)) # Retorna verdadeiro
-
-#verificarLogin('aaana123@gmail.com', 45646542) # Retorna falso
-
-#id = confirmar('ana123@gmail.com')
-#id2 = verificarLogin('ana123@gmail.com', '23356')
-#print(id, id2)
 
 
 def cadastrarUsuario(email, senha):
@@ -74,10 +59,6 @@ def cadastrarUsuario(email, senha):
         
 
 
-#----------- Testes de cadastro
-
-#cadastrarUsuario('FernandoPedro@Hotmail.com', 54451)
-
 def registrarData(data, evento='', fk=0):
     try:
         fk = fk[1]
@@ -96,7 +77,6 @@ def registrarData(data, evento='', fk=0):
 
 
 
-
 def excluirData(idAgenda):
     cnx = conectar()
     task = cnx.cursor()
@@ -104,6 +84,7 @@ def excluirData(idAgenda):
     cnx.commit()
     task.close()
     cnx.close()
+
 
 def retornarData(idUsuario):
     try:
@@ -123,11 +104,3 @@ def retornarData(idUsuario):
             return select
         else:
             return False
-
-#idat = registrarData('2024/06/03 19:39:00', 'test2e', 2)
-
-#print(idat)
-
-
-#print(retornarData(1))
-

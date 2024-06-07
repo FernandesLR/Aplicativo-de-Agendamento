@@ -46,11 +46,15 @@
                     background_normal: ''  # Remove a imagem de fundo padrão do botão
                     background_color: 0, 0, 0, 0  # Define a cor de fundo transparente
                     on_release: root.calendario()
-    BoxLayout:
-        id: table_container
-        orientation: 'vertical'
-        size_hint: (1, None)
-        height: 500
+
+    AnchorLayout:
+        anchor_x: "center"
+        anchor_y: "bottom"
+        BoxLayout:
+            id: table_container
+            orientation: 'vertical'
+            size_hint: (1, 0.81)
+            
     AnchorLayout:
         anchor_x: 'right'
         anchor_y: 'bottom'
@@ -58,3 +62,4 @@
             text: "Apagar"
             padding: 120, 0
             on_release: root.excluirDados()
+            

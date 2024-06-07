@@ -6,19 +6,19 @@ from kivymd.uix.pickers import MDDatePicker # interface de agenda
 from kivymd.uix.pickers import MDTimePicker # interface de relógio
 from kivymd.uix.datatables import MDDataTable
 from kivy.metrics import dp
-from datetime import datetime # apagar caso não tenha marcardor
+from datetime import datetime
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.textfield import MDTextField
+from kivy.core.window import Window
 import db # importa o banco de dados
 
-#from plyer import notification
 
-#from jnius import autoclass
 
+Window.size = (500, 920)
 
 def formatar_data(data):
-    # Convertendo a string de data para um objeto datetime
+    # Convertendo o formato aa/mm/dd para dd/mm
     data_obj = datetime.strptime(data, '%Y-%m-%d')
 
     # Formatando a data no formato brasileiro
@@ -29,38 +29,38 @@ def formatar_data(data):
 
 
 
-class GerenciadorTelas(ScreenManager):
+class GerenciadorTelas(ScreenManager): # Serve para indicar a ordem de carregamento de telas
     pass
-
-# FernandoPedro@Hotmail.com 54451
 
 class PrimeiraTela(Screen): # vai ser a tela de login
     def __init__(self, **kw):
         super().__init__(**kw)
-        self.IdUsuario = ''
+        self.IdUsuario = '' # variáveis com self. são atributos da classe
         self.msg = None
         
     def login(self):
         # pega os textos das caixinhas que são o email e a senha
-        email = str(self.ids.email.text).strip()
+        email = str(self.ids.email.text).strip() # .strip serve para ignorar os espaços
         senha = self.ids.senha.text
-        if email == '' or senha == '':
+
+        if email == '' or senha == '': # se o email ou a senha estiverem vazias retorna erro
             self.mostrarAviso('Os campos de Email e Senha devem estar preenchidos!')
             return
-        idUsuario = db.verificarLogin(email, senha)
         
-        self.manager.current = 'Agendamento'
+        idUsuario = db.verificarLogin(email, senha) # faz uma consulta no banco de dados
 
-        if idUsuario: # passa para uma função externa que vai tratar os dados
+        if idUsuario: # verifica se tem algo dentro da variável e executa o comando abaixo caso seja verdadeiro
             self.ids.email.line_color_normal = [0, 1, 0, 1] # verde
             self.ids.senha.line_color_normal = [0, 1, 0, 1] # verde
             
+            # abaixo o atributo da classe recebe o valor da variável
             self.IdUsuario = idUsuario
-            self.manager.get_screen('Agendamento').idUsuario = idUsuario
+            self.manager.get_screen('Agendamento').idUsuario = idUsuario # passa o valor da variável id para o atributo da segunda tela
+            self.manager.current = 'Agendamento' # troca para a segunda tela
             
 
         else:
-            self.mostrarAviso('Email ou Senha inválido!')
+            self.mostrarAviso('Email ou Senha inválido!') # se a condição do if for falsa retorna mensagem de erro
 
     def mostrarAviso(self, msg):
             self.aviso = MDDialog(
@@ -75,9 +75,17 @@ class PrimeiraTela(Screen): # vai ser a tela de login
             )
             self.aviso.open()
 
-    def fecharAviso(self, *args):
+    def mostrarSenha(self):
+        if self.ids.senha.password: # verifica se a senha já está oculta
+            self.ids.senha.password = False # torna a senha visivel
+            self.ids.senha.icon_right = "eye" # troca o icone 
+        else:
+            self.ids.senha.password = True # oculta a senha
+            self.ids.senha.icon_right = "eye-off"
+
+    def fecharAviso(self, *args): # função que ativada assim que o usuário aperta Ok
         if self.aviso:
-            self.aviso.dismiss()
+            self.aviso.dismiss() # fecha o aviso
             self.aviso = None
         
 
@@ -114,23 +122,25 @@ class SegundaTela(Screen):
     def on_enter(self, *args):
         if self.data_tables:
             self.remove_widget(self.data_tables)
-        primeira_tela = self.manager.get_screen('login')  # Substitua 'nome_da_primeira_tela' pelo nome da sua PrimeiraTela
-        self.idUsuario = primeira_tela.IdUsuario
-        self.tabela()
+        primeira_tela = self.manager.get_screen('login') # acessa as funcionalidades da primeira classe
+        self.idUsuario = primeira_tela.IdUsuario # pega o id do usuario que estava na tela de login
+        self.tabela() # abre a tabela
 
     def calendario(self):
-        print("Abrindo o calendário...")
+        #Abrindo o calendário...
+        # essa função é ativada assim que o usuário clica no botão "meu calendario"
         calendario = MDDatePicker()
-        calendario.bind(on_save=self.pegarDia)
-        calendario.open()
+        calendario.bind(on_save=self.pegarDia) # chama a função responsável por pegar a data escolhida pelo usuário
+        calendario.open() # abre o calendario na interface
         
 
     def pegarDia(self, instance, value, date_range):
+        # Função é disparada quando usuario já escolheu a data e clicou em OK
+        # Serve para pegar o valor da data escolhida pelo usuário
         self.data = value
-        
         relogio = MDTimePicker()
-        relogio.bind(on_save=self.pegarHora)
-        relogio.open()
+        relogio.bind(on_save=self.pegarHora) # chama a função responsável por pegar o valor da hora
+        relogio.open() # abre o relógio na interface
 
     def pegarHora(self, instance, value):
         self.hora = value # self.hora recebe valor da hora
@@ -155,23 +165,21 @@ class SegundaTela(Screen):
 
 
     def registrar(self):
+        # Essa função é executada quando o usuário termina os processos de: marcar data, hora e fazer a descrição do evento
+        # Serve para registrar os dados no banco de dados
         if self.data and self.hora: # verifica se tem alguma coisa dentro dessas variáveis
-
-            data = f"{self.data} "+ f"{self.hora}" # concatena duas variáveis para guardar no banco
-
-            # self.IdAgenda recebe o id desse novo registro que é retornado dessa função db.registrarData
-            self.IdAgenda = db.registrarData(data, self.evento, self.idUsuario) 
+            data = f"{self.data} "+ f"{self.hora}" # concatena duas variáveis para guardar no atributo de classe datetime no banco
+            
+            self.IdAgenda = db.registrarData(data, self.evento, self.idUsuario) # Esse atributo recebe o id que é retornado pela função db.registrarData()
             
             self.addDados(self.data, self.hora, self.evento) # adiciona esses dados cadastrados a interface
-
-        else:
-            print("Data ou hora não foram selecionadas.")
 
     def tabela(self):
         # Configurando a tabela de dados
         self.data_tables = MDDataTable(
             size_hint=(1, 0.81),
-            pos_hint={"center_x": 0.5, "center_y": 0.48},
+            pos_hint={"center_x": 0.5, "center_y": 0.5},
+            elevation=2,
             check = True,
             rows_num = 20,
             column_data=[
@@ -181,35 +189,32 @@ class SegundaTela(Screen):
                 ("Evento", dp(34)),
             ]
         )
-        self.add_widget(self.data_tables) # adiciona esse componente na tela
+        self.ids.table_container.add_widget(self.data_tables) # adiciona esse componente na tela
         self.data_tables.bind(on_check_press=self.pegarIDtable) # adiciona uma função que dispara toda vez quem uma linha é selecionada
         self.retornarDados() # tenta retornar os dados do banco de dados caso essa pessoa tenha algum registro
 
-
     
     def pegarIDtable(self, instance, row):
-        self.id = row
+        self.listaID = row # guarda os ids selecionados
         
         
     def addDados(self, valorData="Não informado", valorHora="Não informado", valorEvento="Não informado"):
         self.diaHora = str(valorData) + ' ' + str(valorHora)
-        self.diaHora = self.diaHora[:-3]
         
         valorData = formatar_data(str(valorData))
         self.data_tables.add_row([f"{self.IdAgenda}",f"{valorData}", f"{valorHora}", f"{valorEvento}"])
-
-        # Lógica dos marcadores (destacar eventos concluídos)
         
             
 
     def excluirDados(self):
-        c = 0
-        if len(self.data_tables.row_data) > 1:
-            for dado in self.data_tables.row_data:
-                if dado == self.id:
+        c = 0 # esse contador seve para acessar a linha atual da tabela
+        if len(self.data_tables.row_data) > 1: # executa se o número de linhas selecionada da tabela for maior que 1
+            for dado in self.data_tables.row_data: # nesse loop o "dado" vai passando por cada linha da tabela
+                if dado == self.listaID: # se o dado for igual ao self.id que é uma lista de ids selecionados
+                    # o sistema apaga esse dados
                     self.data_tables.remove_row(self.data_tables.row_data[c])
-                    db.excluirData(dado[0])
-                c += 1
+                    db.excluirData(dado[0]) # exclui do banco de dados
+                c += 1 # vai para a próxima linha
 
         else:
             self.aviso = MDDialog(
@@ -229,38 +234,28 @@ class SegundaTela(Screen):
             self.aviso.dismiss()
             self.aviso = None
 
-    def pegarTxt(self, *args):
+    def pegarTxt(self, *args): # pega o texto do aviso
         self.evento = self.aviso.content_cls.text
         self.aviso.dismiss()
         self.aviso = None
-        self.registrar()
+        self.registrar() # chama a função registrar
         
 
     def retornarDados(self):
         dados = db.retornarData(self.idUsuario)
         
-        if dados:
+        if dados: # se tiver algo dentro de dados
             for dado in dados:
-                self.IdAgenda = dado[0]
-                diahora = str(dado[1]).split(' ')
-                self.diaHora = diahora[0] +' ' + diahora[1]
-                self.diaHora = self.diaHora[-10]
+                self.IdAgenda = dado[0] # atribui o id ao self.Idagenda
+                diahora = str(dado[1]).split(' ') # pega o dia e hora
+
+                # self.diaHora faz parte da função de notificação
+                #self.diaHora = diahora[0] +' ' + diahora[1]
+                #self.diaHora = self.diaHora[-10]
                 
                 self.addDados(diahora[0], diahora[1], dado[2])
         else:
             print('essa pessoa não possui dados')
-    
-    #def dispararNotificacao(self, titulo, msg):
-        #try:
-            #notification.notify(
-     #           title= titulo,
-      #          message= msg,
-        #        app_name= 'Agendamento'
-       #     )
-       # except ValueError as e:
-          #  print(e)
-        #finally:
-         #   pass
 
     def sair(self):
         self.stop()
@@ -279,12 +274,5 @@ class MeuApp(MDApp):
 
     
     
-
-# Testes
-
-#email = 'pedrinho123@gmail.com'
-#senha = '2412@'
-
-# FernandoPedro@Hotmail.com  54451
 
 MeuApp().run() # executa o código
