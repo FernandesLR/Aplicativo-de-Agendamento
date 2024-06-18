@@ -195,7 +195,11 @@ class SegundaTela(Screen):
 
     
     def pegarIDtable(self, instance, row):
-        self.listaID = row # guarda os ids selecionados
+        if row != self.listaID:
+            self.listaID = row # guarda os ids selecionados
+        else:
+            self.listaID = ''
+            
         
         
     def addDados(self, valorData="Não informado", valorHora="Não informado", valorEvento="Não informado"):
@@ -207,15 +211,13 @@ class SegundaTela(Screen):
             
 
     def excluirDados(self):
-        c = 0 # esse contador seve para acessar a linha atual da tabela
-        if len(self.data_tables.row_data) > 1: # executa se o número de linhas selecionada da tabela for maior que 1
-            for dado in self.data_tables.row_data: # nesse loop o "dado" vai passando por cada linha da tabela
-                if dado == self.listaID: # se o dado for igual ao self.id que é uma lista de ids selecionados
-                    # o sistema apaga esse dados
-                    self.data_tables.remove_row(self.data_tables.row_data[c])
-                    db.excluirData(dado[0]) # exclui do banco de dados
-                c += 1 # vai para a próxima linha
 
+        if len(self.listaID) > 0 and self.listaID != '': # executa se o número de linhas selecionada da tabela for maior que 1
+            for dado in self.data_tables.row_data:
+                if dado == self.listaID:
+                    self.data_tables.remove_row(dado)
+                    self.listaID = ''
+            
         else:
             self.aviso = MDDialog(
             title="Aviso",
